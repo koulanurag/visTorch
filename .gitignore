@@ -1,0 +1,9 @@
+*.egg-info
+*.egg
+*.pyc
+.idea
+/logs
+/dist
+/examples/dataset
+/examples/results
+*~
