@@ -1,6 +1,7 @@
-torch >= 1.0.1
+torch == 1.0.1
+torchvision
 
 # visualization
-dash == 0.40.0 # The core dash backend
+dash >= 0.40.0 # The core dash backend
 dash-daq == 0.1.0 # DAQ components
 dash-bootstrap-components
