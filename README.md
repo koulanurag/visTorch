@@ -24,7 +24,7 @@ vis_board.add_ae(model,
 vis_board.run_server('127.0.0.1','8080')
 ```
 
-Refer to ```.\example``` for more details
+Refer to ```.\examples``` for more details
 
 ## Demo
 ![ ](static/demo.gif)

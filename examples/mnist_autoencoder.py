@@ -89,12 +89,14 @@ if __name__ == '__main__':
     # create relative paths
     dataset_dir = os.path.join(os.getcwd(), 'dataset')
     result_dir = os.path.join(os.getcwd(), 'results', 'mnist')
-    ae_path = os.path.join(result_dir, 'ae_model.p')
+    ae_best_path = os.path.join(result_dir, 'ae_model_best.p')
+    ae_random_path = os.path.join(result_dir, 'ae_model_random.p')
     os.makedirs(dataset_dir, exist_ok=True)
     os.makedirs(result_dir, exist_ok=True)
 
     # create model
     ae_model = AutoEncoder()
+    torch.save(ae_model.state_dict(), ae_random_path)  # just storing a randomly initialized model
 
     # dataset
     img_transform = transforms.Compose([
@@ -135,16 +137,14 @@ if __name__ == '__main__':
                 save_image(x, os.path.join(result_dir, 'x_{}.png'.format(epoch)))
                 save_image(x_hat, os.path.join(result_dir, 'x_hat{}.png'.format(epoch)))
 
-            torch.save(ae_model.state_dict(), ae_path)
+            torch.save(ae_model.state_dict(), ae_best_path)
 
     if args.visualize:
-        ae_model.load_state_dict(torch.load(ae_path))  # load pre-trained model
-
         # initialize visualization app
         vis_board = visboard()
         vis_board.add_ae(ae_model,
                          dataset,
                          latent_options={'n': ae_model.latent_size, 'min': -1, 'max': 1, 'step': 0.05},
-                         model_paths={'Best': ae_path},
+                         model_paths={'Best': ae_best_path, 'Random': ae_random_path},
                          pre_process=process_to_img)
         vis_board.run_server(args.host, args.port)

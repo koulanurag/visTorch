@@ -16,22 +16,26 @@ def _img_resize(img):
 def autoencoder(app, model, dataset, latent_options, paths, pre_process=None, prefix=""):
     prefix += '-ae-'
 
-    header = [html.Div("Auto Encoder", className="float-left col-md-2"),
-              html.Div([dcc.Dropdown(
-                             id=prefix + 'selected-model',
-                             options=[{"label": k, "value": v} for k, v in paths.items()],
-                             value=paths[next(iter(paths.keys()))],
-                             searchable=False,
-                             className="d-inline w-50 float-right"
-                         ),
-                        html.Span("Model: ", className="d-inline w-50 float-right")],
-                  className="float-right col-md-4")]
+    header = dbc.Row([html.Div(html.H5("Auto Encoder"), className="col-md-6"),
+                      dbc.Row([
+                          html.Div("Model: ", className="col-4 text-right m-auto pr-0"),
+                          html.Div(
+                              dcc.Dropdown(
+                                  id=prefix + 'selected-model',
+                                  options=[{"label": k, "value": v} for k, v in paths.items()],
+                                  value=paths[next(iter(paths.keys()))],
+                                  searchable=False)
+                              , className="col-5 pl-0 "),
+                          html.Div(dbc.Button('reload', color="info", id=prefix + 'reload-model', className="col"),
+                                   className="col-3 pl-0"
+                                   )],
+                          className="col-md-6 tools")])
 
     input_div = dbc.Col(
         dbc.Card([dbc.CardHeader([
             "Input",
             dbc.Button('sample', color="info", id=prefix + 'sample-input',
-                       className="mr-1 float-right"),
+                       className="mr-1 float-right", n_clicks=0),
         ]),
             dbc.CardBody(
                 [
@@ -46,6 +50,8 @@ def autoencoder(app, model, dataset, latent_options, paths, pre_process=None, pr
 
     latent_size = latent_options['n']
     latent_space = []
+    # just used to fill initial space in the html
+    init_hidden_space = ",".join([str(latent_options['min']) for _ in range(latent_size)])
 
     for _ in range(latent_size):
         id = prefix + 'latent-slider-' + str(_)
@@ -59,7 +65,8 @@ def autoencoder(app, model, dataset, latent_options, paths, pre_process=None, pr
                                        value=latent_options['min'],
                                        className="mt-3 mb-3"))
     latent_div = dbc.Col(dbc.Card([dbc.CardHeader("Latent Space"),
-                                   html.Span(id=prefix + "hidden-latent-space", children="", className='d-none'),
+                                   html.Span(id=prefix + "hidden-latent-space", children=init_hidden_space,
+                                             className='d-none'),
                                    dbc.CardBody([html.Div(children=latent_space, id=prefix + 'output-latent')]), ]))
 
     output_div = dbc.Col(
@@ -136,9 +143,18 @@ def autoencoder(app, model, dataset, latent_options, paths, pre_process=None, pr
         html_img = html.Img(src='data:image/png;base64,{}'.format(str(encoded_image)[2:-1]))
         return html_img
 
+    @app.callback(
+        Output(component_id=prefix + 'sample-input', component_property='n_clicks'),
+        [Input(component_id=prefix + 'selected-model', component_property='value'),
+         Input(component_id=prefix + 'reload-model', component_property='n_clicks')],
+        [State(component_id=prefix + 'sample-input', component_property='n_clicks')])
+    def refresh_model(model_path, reload, n_clicks):
+        model.load_state_dict(torch.load(model_path))
+        return int(n_clicks) + 1
+
     ae_div = dbc.Card(
         [dbc.CardHeader(header),
          dbc.CardBody(dbc.Row([input_div, latent_div, output_div], className='m-2'))],
-        className="mt-4 mb-4 border-secondary"
+        className="mt-4 mb-4 border-secondary autoencoder-box"
     )
     return ae_div
