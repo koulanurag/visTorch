@@ -1,5 +1,5 @@
 torch == 1.0.1
-torchvision
+torchvision == 0.2.0
 
 # visualization
 dash >= 0.40.0 # The core dash backend
